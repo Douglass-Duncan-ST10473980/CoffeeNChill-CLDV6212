@@ -1,0 +1,117 @@
+# ==========================================
+# CoffeeNChill - .NET / Azure Functions
+# Visual Studio and JetBrains Rider
+# ==========================================
+
+# .NET build output
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+.artifacts/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+
+# JetBrains Rider / IntelliJ
+.idea/
+.idea_modules/
+*.sln.iml
+*.iws
+*.DotSettings.user
+_ReSharper*/
+_ReSharper.Caches/
+
+# VS Code local settings
+.vscode/
+.history/
+
+# Azure Functions local settings
+# May contain local secrets and must not be committed
+**/local.settings.json
+
+# Keep the safe configuration template
+!**/local.settings.example.json
+
+# Environment and secret files
+.env
+.env.*
+!.env.example
+*.secrets.json
+
+# Azurite local database and storage files
+__azurite_db*
+__blobstorage__/
+__queuestorage__/
+.azurite/
+
+# Test output and coverage
+TestResults/
+[Tt]est[Rr]esult*/
+*.trx
+coverage/
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.coveragexml
+
+# NuGet packages and generated files
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+*.nuget.props
+*.nuget.targets
+
+# Publish output
+publish/
+*.pubxml
+*.publish.xml
+*.azurePubxml
+PublishScripts/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+~$*
+
+# Operating system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Desktop.ini
+
+# Docker local override files
+docker-compose.override.yml
+
+# Security-sensitive files
+*.pfx
+*.p12
+*.key
+*.pem
+*.publishsettings
+
+# .NET build output anywhere in the repository
+**/bin/
+**/obj/
+
+# Azure Functions private local settings
+**/local.settings.json
+!**/local.settings.example.json
+
+# macOS files
+.DS_Store
+**/.DS_Store
