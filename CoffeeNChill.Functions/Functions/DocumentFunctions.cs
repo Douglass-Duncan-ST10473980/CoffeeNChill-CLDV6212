@@ -20,8 +20,8 @@ public class DocumentFunctions
 
         // AzureWebJobsStorage is the connection string Azure Functions uses for storage.
         // Locally this comes from local.settings.json.
-        string connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage")
-            ?? "UseDevelopmentStorage=true";
+        string connectionString = Environment.GetEnvironmentVariable("FileShareStorage")
+                                  ?? throw new InvalidOperationException("FileShareStorage connection string is not configured.");
 
         _storageService = new DocumentStorageService(connectionString);
     }
