@@ -34,9 +34,13 @@ public class DocumentFunctions
     public async Task<HttpResponseData> UploadStaffDocument(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "documents/upload")] HttpRequestData req)
     {
-        // Multipart requests declare a "boundary" string in the Content-Type header,
-        // which marks where each part (field/file) of the request body starts and ends.
-        var contentType = req.Headers.GetValues("Content-Type").FirstOrDefault();
+        // TryGetValues returns false instead of throwing if the header is missing,
+// letting us respond with a clean 400 error rather than crashing.
+        string? contentType = null;
+        if (req.Headers.TryGetValues("Content-Type", out var contentTypeValues))
+        {
+            contentType = contentTypeValues.FirstOrDefault();
+        }
 
         if (contentType == null || !contentType.Contains("multipart/form-data"))
         {
