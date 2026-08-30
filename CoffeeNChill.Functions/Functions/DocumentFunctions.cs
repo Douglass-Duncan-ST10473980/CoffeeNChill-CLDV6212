@@ -4,6 +4,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.WebUtilities;
 using CoffeeNChill.Functions.Services;
+using CoffeeNChill.Functions.Models;
 
 namespace CoffeeNChill.Functions.Functions;
 
@@ -94,6 +95,58 @@ public class DocumentFunctions
 
         var response = req.CreateResponse(HttpStatusCode.OK);
         await response.WriteStringAsync($"File '{uploadedFileName}' uploaded successfully.");
+        return response;
+    }
+    
+    // GET /api/documents
+    // Lists every file currently stored in the staff-docs File Share, returning
+    // each file's name, size, and last modified date as JSON.
+    [Function("ListStaffDocuments")]
+    public async Task<HttpResponseData> ListStaffDocuments(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "documents")] HttpRequestData req)
+    {
+        // Delegates the actual Azure File Share query to the storage service,
+        // keeping this function focused only on the HTTP request/response handling.
+        List<StaffDocumentInfo> documents = await _storageService.ListFilesAsync();
+
+        var response = req.CreateResponse(HttpStatusCode.OK);
+
+        // WriteAsJsonAsync automatically serializes the list to JSON and sets
+        // the Content-Type header to application/json for us.
+        await response.WriteAsJsonAsync(documents);
+
+        return response;
+    }
+    
+    // GET /api/documents/download/{fileName}
+    // Streams the requested file back to the client from the staff-docs File Share.
+    // {fileName} is taken directly from the URL path (e.g. /api/documents/download/recipe.pdf).
+    [Function("DownloadStaffDocument")]
+    public async Task<HttpResponseData> DownloadStaffDocument(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "documents/download/{fileName}")] HttpRequestData req,
+        string fileName)
+    {
+        // Ask the storage service for the file's content stream. It returns null
+        // if the file doesn't exist, so we can respond with 404 instead of crashing.
+        Stream? fileStream = await _storageService.DownloadFileAsync(fileName);
+
+        if (fileStream == null)
+        {
+            var notFound = req.CreateResponse(HttpStatusCode.NotFound);
+            await notFound.WriteStringAsync($"File '{fileName}' was not found.");
+            return notFound;
+        }
+
+        var response = req.CreateResponse(HttpStatusCode.OK);
+
+        // Setting Content-Disposition tells the client (browser/Postman) this is a
+        // downloadable file attachment, and suggests the original file name to save it as.
+        response.Headers.Add("Content-Disposition", $"attachment; filename=\"{fileName}\"");
+        response.Headers.Add("Content-Type", "application/octet-stream");
+
+        // Copy the file's bytes directly into the HTTP response body stream.
+        await fileStream.CopyToAsync(response.Body);
+
         return response;
     }
 
