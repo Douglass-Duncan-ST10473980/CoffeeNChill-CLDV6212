@@ -1,3 +1,5 @@
+//Author: Tahir Ismail
+using Azure.Monitor.OpenTelemetry.Exporter;
 using CoffeeNChill.Functions.Services;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;

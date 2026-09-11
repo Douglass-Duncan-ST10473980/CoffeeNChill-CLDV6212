@@ -1,4 +1,5 @@
-﻿namespace CoffeeNChill.Functions.Models;
+﻿//Author: Tahir Ismail
+namespace CoffeeNChill.Functions.Models;
 
 public class StaffDocumentInfo
 {
