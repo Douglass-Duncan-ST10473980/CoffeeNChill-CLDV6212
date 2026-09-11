@@ -34,7 +34,7 @@ _ReSharper.Caches/
 
 # Azure Functions local settings
 # May contain local secrets and must not be committed
-**/local.settings.json
+
 
 # Keep the safe configuration template
 !**/local.settings.example.json
