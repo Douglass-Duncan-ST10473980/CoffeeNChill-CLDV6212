@@ -23,7 +23,7 @@ using Microsoft.Extensions.Logging;
 // 1. CRUD Operations:
 //    - Create: POST /api/menu (Adds a new item with validation)
 //    - Read:   GET  /api/menu (Retrieves all items)
-//             GET  /api/menu/category/{category} (Retrieves items by category)
+//             GET  /api/categories/{category} (Retrieves items by category)
 //             GET  /api/menu/{category}/{sku} (Retrieves a single specific item)
 //    - Update: PUT  /api/menu/{category}/{sku} (Modifies an existing item, supports partial updates)
 //    - Delete: DELETE /api/menu/{category}/{sku} (Removes an item)
@@ -110,7 +110,6 @@ namespace CoffeeNChill.Functions.Functions
                 var created = await _storageService.CreateMenuItemAsync(menuItem);
 
                 var response = req.CreateResponse(HttpStatusCode.Created);
-                // FIX: Manually serialize to JSON and write to the body
                 string json = JsonSerializer.Serialize(created, _jsonOptions);
                 await response.WriteStringAsync(json, Encoding.UTF8);
                 response.Headers.Add("Content-Type", "application/json; charset=utf-8");
@@ -145,7 +144,6 @@ namespace CoffeeNChill.Functions.Functions
                 var items = await _storageService.GetAllMenuItemsAsync();
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
-                // FIX: Manually serialize to JSON and write to the body
                 string json = JsonSerializer.Serialize(items, _jsonOptions);
                 await response.WriteStringAsync(json, Encoding.UTF8);
                 response.Headers.Add("Content-Type", "application/json; charset=utf-8");
@@ -158,10 +156,15 @@ namespace CoffeeNChill.Functions.Functions
             }
         }
 
-        // 3. GET /api/menu/category/{category} - Get items by category
+        // 3. GET /api/categories/{category} - Get items by category
+        // IMPORTANT: The route lives under "categories/" (not "menu/...") to avoid a
+        // routing conflict with "menu/{category}/{sku}". If it were under "menu/",
+        // the Azure Functions router would interpret "by-category" as the {category}
+        // parameter and "Drinks" as the {sku} parameter, sending the request to the
+        // wrong function entirely.
         [Function("GetMenuItemsByCategory")]
         public async Task<HttpResponseData> GetMenuItemsByCategory(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "menu/category/{category}")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{category}")] HttpRequestData req,
             string category)
         {
             try
@@ -176,7 +179,6 @@ namespace CoffeeNChill.Functions.Functions
                 var items = await _storageService.GetMenuItemsByCategoryAsync(category.Trim());
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
-                // FIX: Manually serialize to JSON and write to the body
                 string json = JsonSerializer.Serialize(items, _jsonOptions);
                 await response.WriteStringAsync(json, Encoding.UTF8);
                 response.Headers.Add("Content-Type", "application/json; charset=utf-8");
@@ -213,7 +215,6 @@ namespace CoffeeNChill.Functions.Functions
                 }
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
-                // FIX: Manually serialize to JSON and write to the body
                 string json = JsonSerializer.Serialize(item, _jsonOptions);
                 await response.WriteStringAsync(json, Encoding.UTF8);
                 response.Headers.Add("Content-Type", "application/json; charset=utf-8");
@@ -272,7 +273,6 @@ namespace CoffeeNChill.Functions.Functions
                 await _storageService.UpdateMenuItemAsync(existingItem);
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
-                // FIX: Manually serialize to JSON and write to the body
                 string json = JsonSerializer.Serialize(existingItem, _jsonOptions);
                 await response.WriteStringAsync(json, Encoding.UTF8);
                 response.Headers.Add("Content-Type", "application/json; charset=utf-8");
@@ -345,7 +345,6 @@ namespace CoffeeNChill.Functions.Functions
             _logger.LogInformation("Health check requested.");
             var response = req.CreateResponse(HttpStatusCode.OK);
 
-            // FIX: Manually serialize to JSON and write to the body
             var healthData = new
             {
                 Status = "Healthy",
