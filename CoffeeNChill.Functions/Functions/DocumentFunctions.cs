@@ -98,7 +98,7 @@ public class DocumentFunctions
 
         _logger.LogInformation($"Uploaded staff document: {uploadedFileName}");
 
-        var response = req.CreateResponse(HttpStatusCode.OK);
+        var response = req.CreateResponse(HttpStatusCode.Created);
         await response.WriteStringAsync($"File '{uploadedFileName}' uploaded successfully.");
         return response;
     }
