@@ -1,0 +1,499 @@
+{
+  "info": {
+    "_postman_id": "b05561b0-c38d-4a0e-a9a3-2d453196a5ea",
+    "name": "CoffeeNchill API Tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "57316614"
+  },
+  "item": [
+    {
+      "name": "01 - Menu",
+      "item": [
+        {
+          "name": "Create Hot Drink",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 201 Created\", function () {\n    pm.response.to.have.status(201);\n});\n\n\npm.test(\"Response has the required menu-item structure\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.be.an(\"object\");\n    pm.expect(data).to.have.property(\"partitionKey\");\n    pm.expect(data).to.have.property(\"rowKey\");\n    pm.expect(data).to.have.property(\"name\");\n    pm.expect(data).to.have.property(\"price\");\n    pm.expect(data).to.have.property(\"isAvailable\");\n});\n\npm.test(\"Correct hot drink was created\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.partitionKey).to.eql(\"Hot Drinks\");\n    pm.expect(data.rowKey).to.eql(\"COF-001\");\n    pm.expect(data.name).to.eql(\"Cappuccino\");\n    pm.expect(data.price).to.eql(42.50);\n    pm.expect(data.isAvailable).to.eql(true);\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Hot Drinks\",\n  \"sku\": \"COF-001\",\n  \"name\": \"Cappuccino\",\n  \"description\": \"Espresso with steamed milk and foam\",\n  \"price\": 42.50,\n  \"isAvailable\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Cold Drink",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 201 Created\", function () {\n    pm.response.to.have.status(201);\n});\n\n\npm.test(\"Response has the required menu-item structure\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.be.an(\"object\");\n    pm.expect(data).to.have.property(\"partitionKey\");\n    pm.expect(data).to.have.property(\"rowKey\");\n    pm.expect(data).to.have.property(\"name\");\n    pm.expect(data).to.have.property(\"price\");\n    pm.expect(data).to.have.property(\"isAvailable\");\n});\n\npm.test(\"Correct cold drink was created\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.partitionKey).to.eql(\"Cold Drinks\");\n    pm.expect(data.rowKey).to.eql(\"CLD-001\");\n    pm.expect(data.name).to.eql(\"Iced Coffee\");\n    pm.expect(data.price).to.eql(37.50);\n    pm.expect(data.isAvailable).to.eql(true);\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Cold Drinks\",\n  \"sku\": \"CLD-001\",\n  \"name\": \"Iced Coffee\",\n  \"description\": \"Chilled coffee served over ice\",\n  \"price\": 37.50,\n  \"isAvailable\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Menu Items",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 200 OK\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response is an array\", function () {\n    const items = pm.response.json();\n    pm.expect(items).to.be.an(\"array\");\n});\n\npm.test(\"Menu contains test items\", function () {\n    const items = pm.response.json();\n\n    pm.expect(items.some(item => item.rowKey === \"COF-001\")).to.eql(true);\n    pm.expect(items.some(item => item.rowKey === \"CLD-001\")).to.eql(true);\n});\n\npm.test(\"Every menu item has the required structure\", function () {\n    const items = pm.response.json();\n\n    items.forEach(function (item) {\n        pm.expect(item).to.have.property(\"partitionKey\");\n        pm.expect(item).to.have.property(\"rowKey\");\n        pm.expect(item).to.have.property(\"name\");\n        pm.expect(item).to.have.property(\"price\");\n        pm.expect(item.price).to.be.a(\"number\");\n        pm.expect(item).to.have.property(\"isAvailable\");\n        pm.expect(item.isAvailable).to.be.a(\"boolean\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Hot Drinks",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 200 OK\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response is an array\", function () {\n    pm.expect(pm.response.json()).to.be.an(\"array\");\n});\n\npm.test(\"At least one hot drink was returned\", function () {\n    pm.expect(pm.response.json().length).to.be.greaterThan(0);\n});\n\npm.test(\"Every result is a hot drink\", function () {\n    const items = pm.response.json();\n\n    items.forEach(function (item) {\n        pm.expect(item.partitionKey).to.eql(\"Hot Drinks\");\n    });\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/Hot%20Drinks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "categories",
+                "Hot%20Drinks"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Specific Drink",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 200 OK\", function () {\n    pm.response.to.have.status(200);\n});\n\n\npm.test(\"Response is one menu-item object\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.be.an(\"object\");\n    pm.expect(data).to.have.property(\"partitionKey\");\n    pm.expect(data).to.have.property(\"rowKey\");\n    pm.expect(data).to.have.property(\"name\");\n    pm.expect(data).to.have.property(\"description\");\n    pm.expect(data).to.have.property(\"price\");\n    pm.expect(data).to.have.property(\"isAvailable\");\n});\n\npm.test(\"Correct drink was returned\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.partitionKey).to.eql(\"Hot Drinks\");\n    pm.expect(data.rowKey).to.eql(\"COF-001\");\n    pm.expect(data.name).to.eql(\"Cappuccino\");\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/menu/Hot%20Drinks/COF-001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu",
+                "Hot%20Drinks",
+                "COF-001"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Cuppaccino",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 200 OK\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response has the required structure\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data).to.be.an(\"object\");\n    pm.expect(data).to.have.property(\"rowKey\");\n    pm.expect(data).to.have.property(\"name\");\n    pm.expect(data).to.have.property(\"price\");\n    pm.expect(data).to.have.property(\"isAvailable\");\n});\n\npm.test(\"Cappuccino was updated correctly\", function () {\n    const data = pm.response.json();\n\n    pm.expect(data.rowKey).to.eql(\"COF-001\");\n    pm.expect(data.name).to.eql(\"Large Cappuccino\");\n    pm.expect(data.price).to.eql(49.99);\n    pm.expect(data.isAvailable).to.eql(true);\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Large Cappuccino\",\n  \"description\": \"Double espresso with steamed milk and foam\",\n  \"price\": 49.99,\n  \"isAvailable\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu/Hot%20Drinks/COF-001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu",
+                "Hot%20Drinks",
+                "COF-001"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Documents",
+      "item": []
+    },
+    {
+      "name": "03 - Negative Tests",
+      "item": [
+        {
+          "name": "Create Drink — Missing Category",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 400 Bad Request\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error response is not empty\", function () {\n    pm.expect(pm.response.text().trim()).not.to.eql(\"\");\n});\n\npm.test(\"Error message mentions category\", function () {\n    const message = pm.response.text().toLowerCase();\n    pm.expect(message).to.include(\"category\");\n});\n\npm.test(\"Response time is acceptable\", function () {\n    pm.expect(pm.response.responseTime).to.be.below(2000);\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"\",\n  \"sku\": \"COF-003\",\n  \"name\": \"Americano\",\n  \"description\": \"Espresso and hot water\",\n  \"price\": 30.00,\n  \"isAvailable\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Drink — Missing SKU",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 400 Bad Request\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error response is not empty\", function () {\n    pm.expect(pm.response.text().trim()).not.to.eql(\"\");\n});\n\npm.test(\"Error message mentions SKU\", function () {\n    const message = pm.response.text().toLowerCase();\n    pm.expect(message).to.include(\"sku\");\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Hot Drinks\",\n  \"sku\": \"\",\n  \"name\": \"Americano\",\n  \"description\": \"Espresso and hot water\",\n  \"price\": 30.00,\n  \"isAvailable\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Drink — Invalid SKU Format",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 400 Bad Request\", function () {\n    pm.response.to.have.status(400);\n});\n\npm.test(\"Error response is not empty\", function () {\n    pm.expect(pm.response.text().trim()).not.to.eql(\"\");\n});\n\npm.test(\"Error message mentions invalid SKU\", function () {\n    const message = pm.response.text().toLowerCase();\n    pm.expect(message).to.include(\"sku\");\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"category\": \"Hot Drinks\",\n  \"sku\": \"INVALID\",\n  \"name\": \"Americano\",\n  \"description\": \"Espresso and hot water\",\n  \"price\": 30.00,\n  \"isAvailable\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Nonexistent Drink",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 404 Not Found\", function () {\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Error response is not empty\", function () {\n    pm.expect(pm.response.text().trim()).not.to.eql(\"\");\n});\n\npm.test(\"Response contains a not-found message\", function () {\n    const message = pm.response.text().toLowerCase();\n    pm.expect(message).to.include(\"not found\");\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/menu/Hot%20Drinks/COF-999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu",
+                "Hot%20Drinks",
+                "COF-999"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Nonexistent Drink",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 404 Not Found\", function () {\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Error response is not empty\", function () {\n    pm.expect(pm.response.text().trim()).not.to.eql(\"\");\n});\n\npm.test(\"Response contains a not-found message\", function () {\n    const message = pm.response.text().toLowerCase();\n    pm.expect(message).to.include(\"not found\");\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Missing Coffee\",\n  \"description\": \"This item does not exist\",\n  \"price\": 40.00,\n  \"isAvailable\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/menu/Hot%20Drinks/COF-999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu",
+                "Hot%20Drinks",
+                "COF-999"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Nonexistent Drink",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 404 Not Found\", function () {\n    pm.response.to.have.status(404);\n});\n\npm.test(\"Error response is not empty\", function () {\n    pm.expect(pm.response.text().trim()).not.to.eql(\"\");\n});\n\npm.test(\"Response contains a not-found message\", function () {\n    const message = pm.response.text().toLowerCase();\n    pm.expect(message).to.include(\"not found\");\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/menu/Hot%20Drinks/COF-999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu",
+                "Hot%20Drinks",
+                "COF-999"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Clean Up",
+      "item": [
+        {
+          "name": "Delete Hot Drink",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 204 No Content\", function () {\n    pm.response.to.have.status(204);\n});\n\npm.test(\"Response body is empty\", function () {\n    pm.expect(pm.response.text()).to.eql(\"\");\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/menu/Hot%20Drinks/COF-001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu",
+                "Hot%20Drinks",
+                "COF-001"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Cold Drink",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Returns 204 No Content\", function () {\n    pm.response.to.have.status(204);\n});\n\npm.test(\"Response body is empty\", function () {\n    pm.expect(pm.response.text()).to.eql(\"\");\n});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/menu/Cold%20Drinks/CLD-001",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "menu",
+                "Cold%20Drinks",
+                "CLD-001"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
