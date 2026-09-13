@@ -8,6 +8,8 @@ using Microsoft.Extensions.Logging;
 
 
 // MENU STORAGE SERVICE - Data Access Layer
+//This code was completed by Neha ST10478910
+//Double Checked by Douglass St10473980
 
 //
 // This file handles all direct interactions with the Azure Table Storage database.
