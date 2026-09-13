@@ -16,6 +16,18 @@ public class DocumentFunctions
     private readonly ILogger _logger;
     private readonly DocumentStorageService _storageService;
 
+    // Allow-list of MIME types staff documents are permitted to be. Recipe sheets,
+    // manuals, and policies are expected to be PDFs, Word docs, or images — anything
+    // else is rejected before it ever reaches storage.
+    private static readonly HashSet<string> AllowedMimeTypes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "image/png",
+        "image/jpeg"
+    };
+
     public DocumentFunctions(ILoggerFactory loggerFactory)
     {
         _logger = loggerFactory.CreateLogger<DocumentFunctions>();
@@ -36,7 +48,7 @@ public class DocumentFunctions
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "documents/upload")] HttpRequestData req)
     {
         // TryGetValues returns false instead of throwing if the header is missing,
-// letting us respond with a clean 400 error rather than crashing.
+        // letting us respond with a clean 400 error rather than crashing.
         string? contentType = null;
         if (req.Headers.TryGetValues("Content-Type", out var contentTypeValues))
         {
@@ -77,13 +89,43 @@ public class DocumentFunctions
                     return badRequest;
                 }
 
+                // MIME-type validation. Each multipart section carries its own
+                // Content-Type (separate from the outer request's Content-Type, which
+                // we already checked above). We reject anything not on the allow-list
+                // before it gets anywhere near storage.
+                string? fileMimeType = section.ContentType;
+
+                if (string.IsNullOrWhiteSpace(fileMimeType) || !AllowedMimeTypes.Contains(fileMimeType))
+                {
+                    _logger.LogWarning($"Rejected upload '{uploadedFileName}' with unsupported MIME type '{fileMimeType}'.");
+
+                    var unsupportedType = req.CreateResponse(HttpStatusCode.BadRequest);
+                    await unsupportedType.WriteStringAsync(
+                        $"Unsupported file type '{fileMimeType}'. Allowed types: {string.Join(", ", AllowedMimeTypes)}.");
+                    return unsupportedType;
+                }
+
                 // Buffer the file into memory, then hand the stream off to the storage
                 // service which does the actual streaming write into the File Share.
                 using var memoryStream = new MemoryStream();
                 await section.Body.CopyToAsync(memoryStream);
                 memoryStream.Position = 0; // reset stream position before it's read again
 
-                await _storageService.UploadFileAsync(uploadedFileName, memoryStream);
+                // full error logging around the storage call. If the write to the
+                // File Share fails (e.g. connection drops, share unavailable), we log
+                // the real exception and return a clean 500 instead of letting it crash
+                try
+                {
+                    await _storageService.UploadFileAsync(uploadedFileName, memoryStream);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Failed to upload staff document '{uploadedFileName}' to staff-docs.");
+
+                    var serverError = req.CreateResponse(HttpStatusCode.InternalServerError);
+                    await serverError.WriteStringAsync("An error occurred while uploading the file. Please try again.");
+                    return serverError;
+                }
             }
         }
 
@@ -110,9 +152,23 @@ public class DocumentFunctions
     public async Task<HttpResponseData> ListStaffDocuments(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "documents")] HttpRequestData req)
     {
-        // Delegates the actual Azure File Share query to the storage service,
-        // keeping this function focused only on the HTTP request/response handling.
-        List<StaffDocumentInfo> documents = await _storageService.ListFilesAsync();
+        // wrapped in try/catch so a storage-side failure (e.g. Azure File Share
+        // unreachable) is logged and returned as a clean 500 instead of crashing.
+        List<StaffDocumentInfo> documents;
+        try
+        {
+            // Delegates the actual Azure File Share query to the storage service,
+            // keeping this function focused only on the HTTP request/response handling.
+            documents = await _storageService.ListFilesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to list staff documents from staff-docs.");
+
+            var serverError = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await serverError.WriteStringAsync("An error occurred while listing staff documents. Please try again.");
+            return serverError;
+        }
 
         var response = req.CreateResponse(HttpStatusCode.OK);
 
@@ -131,9 +187,24 @@ public class DocumentFunctions
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "documents/download/{fileName}")] HttpRequestData req,
         string fileName)
     {
-        // Ask the storage service for the file's content stream. It returns null
-        // if the file doesn't exist, so we can respond with 404 instead of crashing.
-        Stream? fileStream = await _storageService.DownloadFileAsync(fileName);
+        // NEW: wrapped in try/catch. A missing file already returns 404 via the null
+        // check below — this only catches genuine unexpected failures (e.g. the File
+        // Share itself being unreachable), logs them, and returns a clean 500.
+        Stream? fileStream;
+        try
+        {
+            // Ask the storage service for the file's content stream. It returns null
+            // if the file doesn't exist, so we can respond with 404 instead of crashing.
+            fileStream = await _storageService.DownloadFileAsync(fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to download staff document '{fileName}' from staff-docs.");
+
+            var serverError = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await serverError.WriteStringAsync("An error occurred while downloading the file. Please try again.");
+            return serverError;
+        }
 
         if (fileStream == null)
         {
