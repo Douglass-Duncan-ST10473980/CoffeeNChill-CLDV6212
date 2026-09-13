@@ -1,0 +1,66 @@
+### CoffeeNChill Menu API - HTTP Test File
+### Author: Neha Heeralal ST10478910
+###
+### Usage:
+###   1. Ensure the API is running locally: cd CoffeeNChill.Functions && func start
+###   2. Click "Send Request" above any request below to execute it
+###   3. Requires the REST Client extension (VS Code) or built-in support (Visual Studio)
+
+@baseUrl = http://localhost:7071/api
+
+### ============================================================
+### 1. Health Check - Verify the API is running
+### ============================================================
+GET {{baseUrl}}/health
+
+### ============================================================
+### 2. Create Menu Item - POST
+### ============================================================
+POST {{baseUrl}}/menu
+Content-Type: application/json
+
+{
+  "category": "Drinks",
+  "sku": "COF-001",
+  "name": "Hot Coffee",
+  "description": "Freshly brewed dark roast",
+  "price": 3.5,
+  "isAvailable": true
+}
+
+### ============================================================
+### 3. Get All Menu Items
+### ============================================================
+GET {{baseUrl}}/menu
+
+### ============================================================
+### 4. Get Single Item by Category and SKU
+### ============================================================
+GET {{baseUrl}}/menu/Drinks/COF-001
+
+### ============================================================
+### 5. Get Items by Category
+### ============================================================
+GET {{baseUrl}}/categories/Drinks
+
+### ============================================================
+### 6. Update Menu Item - PUT
+### ============================================================
+PUT {{baseUrl}}/menu/Drinks/COF-001
+Content-Type: application/json
+
+{
+  "name": "Extra Hot Coffee",
+  "price": 4.5,
+  "isAvailable": true
+}
+
+### ============================================================
+### 7. Delete Menu Item - DELETE
+### ============================================================
+DELETE {{baseUrl}}/menu/Drinks/COF-001
+
+### ============================================================
+### 8. Verify Deletion (should return 404 Not Found)
+### ============================================================
+GET {{baseUrl}}/menu/Drinks/COF-001
