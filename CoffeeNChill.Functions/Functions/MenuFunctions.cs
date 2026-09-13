@@ -67,6 +67,14 @@ namespace CoffeeNChill.Functions.Functions
         }
 
         // 1. POST /api/menu - Create a new menu item
+        /// <summary>
+        /// Handles POST requests to create a new menu item in the database.
+        /// Validates that the Category and SKU are provided, and that the SKU matches
+        /// the required format of XXX-000 (e.g., COF-001). Returns a 201 Created response
+        /// with the newly created item, or a 400 Bad Request if validation fails.
+        /// </summary>
+        /// <param name="req">The incoming HTTP request containing the menu item JSON in the body.</param>
+        /// <returns>An HTTP response with the created item or an appropriate error message.</returns>
         [Function("CreateMenuItem")]
         public async Task<HttpResponseData> CreateMenuItem(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "menu")]
@@ -151,6 +159,13 @@ namespace CoffeeNChill.Functions.Functions
         }
 
         // 2. GET /api/menu - Get all menu items
+        /// <summary>
+        /// Handles GET requests to retrieve every menu item stored in the database.
+        /// Returns a 200 OK response with a JSON array of all items, or a 500 error
+        /// if the storage service fails.
+        /// </summary>
+        /// <param name="req">The incoming HTTP request.</param>
+        /// <returns>An HTTP response with a JSON array of all menu items.</returns>
         [Function("GetAllMenuItems")]
         public async Task<HttpResponseData> GetAllMenuItems(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "menu")]
@@ -181,6 +196,16 @@ namespace CoffeeNChill.Functions.Functions
         // the Azure Functions router would interpret "by-category" as the {category}
         // parameter and "Drinks" as the {sku} parameter, sending the request to the
         // wrong function entirely.
+        /// <summary>
+        /// Handles GET requests to retrieve all menu items that belong to a specific category.
+        /// Returns a 200 OK response with a filtered JSON array of items. The route is
+        /// intentionally placed under /api/categories/ (not /api/menu/) to avoid a routing
+        /// conflict with the GetMenuItem endpoint, which uses the pattern /api/menu/{category}/{sku}.
+        /// </summary>
+        /// <param name="req">The incoming HTTP request.</param>
+        /// <param name="category">The category name to filter items by (e.g., "Drinks").</param>
+        /// <returns>An HTTP response with a JSON array of items in that category, or 400 if the category is empty.</returns>
+
         [Function("GetMenuItemsByCategory")]
         public async Task<HttpResponseData> GetMenuItemsByCategory(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "menu/category/{category}")]
@@ -212,6 +237,15 @@ namespace CoffeeNChill.Functions.Functions
         }
 
         // 4. GET /api/menu/{category}/{sku} - Get single menu item
+        /// <summary>
+        /// Handles GET requests to retrieve a single menu item using its composite key
+        /// of Category (PartitionKey) and SKU (RowKey). Returns a 200 OK response with
+        /// the item's data if found, or a 404 Not Found if no matching item exists.
+        /// </summary>
+        /// <param name="req">The incoming HTTP request.</param>
+        /// <param name="category">The category of the item to retrieve.</param>
+        /// <param name="sku">The unique SKU of the item to retrieve.</param>
+        /// <returns>An HTTP response with the requested item, or 404 if it doesn't exist.</returns>
         [Function("GetMenuItem")]
         public async Task<HttpResponseData> GetMenuItem(
             [HttpTrigger(
@@ -253,6 +287,16 @@ namespace CoffeeNChill.Functions.Functions
         }
 
         // 5. PUT /api/menu/{category}/{sku} - Update menu item
+        /// <summary>
+        /// Handles PUT requests to update an existing menu item. Supports partial updates,
+        /// meaning only the fields provided in the request body (Name, Description, Price,
+        /// IsAvailable) will be changed. Returns a 200 OK with the updated item if successful,
+        /// 404 Not Found if the item doesn't exist, or 400 Bad Request if validation fails.
+        /// </summary>
+        /// <param name="req">The incoming HTTP request containing the update data in the body.</param>
+        /// <param name="category">The category of the item to update.</param>
+        /// <param name="sku">The SKU of the item to update.</param>
+        /// <returns>An HTTP response with the updated item or an appropriate error message.</returns>
         [Function("UpdateMenuItem")]
         public async Task<HttpResponseData> UpdateMenuItem(
             [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "menu/{category}/{sku}")]
@@ -343,6 +387,15 @@ namespace CoffeeNChill.Functions.Functions
         }
 
         // 6. DELETE /api/menu/{category}/{sku} - Delete menu item
+        /// <summary>
+        /// Handles DELETE requests to remove a specific menu item from the database using
+        /// its Category (PartitionKey) and SKU (RowKey). Returns 204 No Content on success,
+        /// or 404 Not Found if the item does not exist.
+        /// </summary>
+        /// <param name="req">The incoming HTTP request.</param>
+        /// <param name="category">The category of the item to delete.</param>
+        /// <param name="sku">The SKU of the item to delete.</param>
+        /// <returns>An HTTP response indicating success (204 No Content) or 404 if not found.</returns>
         [Function("DeleteMenuItem")]
         public async Task<HttpResponseData> DeleteMenuItem(
             [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "menu/{category}/{sku}")]
@@ -382,6 +435,14 @@ namespace CoffeeNChill.Functions.Functions
         }
 
         // 7. GET /api/health - Health check endpoint (bonus)
+        /// <summary>
+        /// Handles GET requests to the health check endpoint. Returns a 200 OK with a
+        /// JSON payload containing the API status, current UTC timestamp, service name,
+        /// and version. Used for uptime monitoring, load balancer checks, and quick
+        /// smoke tests to verify the API is running.
+        /// </summary>
+        /// <param name="req">The incoming HTTP request.</param>
+        /// <returns>An HTTP response with the current health status of the API as JSON.</returns>
         [Function("HealthCheck")]
         public async Task<HttpResponseData> HealthCheck(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "health")]
