@@ -90,6 +90,17 @@ namespace CoffeeNChill.Functions.Functions
                 {
                     return await CreateBadResponse(req, "SKU is required.");
                 }
+                
+                // - Douglass ST10473980 Code Start 
+                if (string.IsNullOrWhiteSpace(request.Name))
+                {
+                    return await CreateBadResponse(req, "Name is required.");
+                }
+                if (request.Price <= 0)
+                {
+                    return await CreateBadResponse(req, "Price must be greater than zero.");
+                }
+                // - Douglass ST10473980 Code End 
 
                 // Validate SKU format (optional but good practice)
                 if (!IsValidSku(request.SKU))
