@@ -107,10 +107,12 @@ namespace CoffeeNChill.Functions.Functions
                 }
                 // - Douglass ST10473980 Code End 
 
-                // Validate SKU format (optional but good practice)
+                //Douglass -ST10473980 Btter validation
                 if (!IsValidSku(request.SKU))
                 {
-                    return await CreateBadResponse(req, "SKU must follow format: XXX-000 (e.g., COF-001)");
+                    return await CreateBadResponse(
+                        req,
+                        "SKU must follow format: XXX-000 (e.g., COF-001)");
                 }
 
                 var menuItem = new MenuItem
