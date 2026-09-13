@@ -214,7 +214,11 @@ namespace CoffeeNChill.Functions.Functions
         // 4. GET /api/menu/{category}/{sku} - Get single menu item
         [Function("GetMenuItem")]
         public async Task<HttpResponseData> GetMenuItem(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "menu/{category}/{sku}")]
+            [HttpTrigger(
+                AuthorizationLevel.Anonymous,
+                "get",
+                Route = "menu/item/{category}/{sku}"
+            )]
             HttpRequestData req,
             string category,
             string sku)
