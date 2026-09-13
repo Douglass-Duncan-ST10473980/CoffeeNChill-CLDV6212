@@ -5,13 +5,15 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using CoffeeNChill.Functions.DTO;
 using CoffeeNChill.Functions.Models;
 using CoffeeNChill.Functions.Services;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
-
+//This code was completed by Neha ST10478910
+//Double Checked by Douglass St10473980
 // MENU FUNCTIONS - API Controller (used chat to help me with the explaination) 
 
 //
@@ -48,6 +50,7 @@ namespace CoffeeNChill.Functions.Functions
     {
         private readonly ILogger<MenuFunctions> _logger;
         private readonly MenuStorageService _storageService;
+
         private static readonly JsonSerializerOptions _jsonOptions = new()
         {
             PropertyNameCaseInsensitive = true,
@@ -66,7 +69,8 @@ namespace CoffeeNChill.Functions.Functions
         // 1. POST /api/menu - Create a new menu item
         [Function("CreateMenuItem")]
         public async Task<HttpResponseData> CreateMenuItem(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "menu")] HttpRequestData req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "menu")]
+            HttpRequestData req)
         {
             try
             {
@@ -90,12 +94,13 @@ namespace CoffeeNChill.Functions.Functions
                 {
                     return await CreateBadResponse(req, "SKU is required.");
                 }
-                
+
                 // - Douglass ST10473980 Code Start 
                 if (string.IsNullOrWhiteSpace(request.Name))
                 {
                     return await CreateBadResponse(req, "Name is required.");
                 }
+
                 if (request.Price <= 0)
                 {
                     return await CreateBadResponse(req, "Price must be greater than zero.");
@@ -146,7 +151,8 @@ namespace CoffeeNChill.Functions.Functions
         // 2. GET /api/menu - Get all menu items
         [Function("GetAllMenuItems")]
         public async Task<HttpResponseData> GetAllMenuItems(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "menu")] HttpRequestData req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "menu")]
+            HttpRequestData req)
         {
             try
             {
@@ -175,7 +181,8 @@ namespace CoffeeNChill.Functions.Functions
         // wrong function entirely.
         [Function("GetMenuItemsByCategory")]
         public async Task<HttpResponseData> GetMenuItemsByCategory(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{category}")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{category}")]
+            HttpRequestData req,
             string category)
         {
             try
@@ -205,7 +212,8 @@ namespace CoffeeNChill.Functions.Functions
         // 4. GET /api/menu/{category}/{sku} - Get single menu item
         [Function("GetMenuItem")]
         public async Task<HttpResponseData> GetMenuItem(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "menu/{category}/{sku}")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "menu/{category}/{sku}")]
+            HttpRequestData req,
             string category,
             string sku)
         {
@@ -241,7 +249,8 @@ namespace CoffeeNChill.Functions.Functions
         // 5. PUT /api/menu/{category}/{sku} - Update menu item
         [Function("UpdateMenuItem")]
         public async Task<HttpResponseData> UpdateMenuItem(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "menu/{category}/{sku}")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "menu/{category}/{sku}")]
+            HttpRequestData req,
             string category,
             string sku)
         {
@@ -261,26 +270,43 @@ namespace CoffeeNChill.Functions.Functions
                 }
 
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-                var request = JsonSerializer.Deserialize<MenuItemRequest>(requestBody, _jsonOptions);
+
+                //Changed DTO to UpdateMenuItem
+                var request = JsonSerializer.Deserialize<UpdateMenuItemRequest>(requestBody, _jsonOptions);
 
                 if (request == null)
                 {
                     return await CreateBadResponse(req, "Invalid request body.");
                 }
-
-                // Only update fields that are provided (partial update support)
+                // Douglass - St10473980 Fixed start
                 if (!string.IsNullOrWhiteSpace(request.Name))
+                {
                     existingItem.Name = request.Name.Trim();
+                }
 
-                if (!string.IsNullOrWhiteSpace(request.Description))
+                if (request.Description != null)
+                {
                     existingItem.Description = request.Description.Trim();
+                }
 
-                if (request.Price > 0)
-                    existingItem.Price = request.Price;
+                if (request.Price.HasValue)
+                {
+                    if (request.Price.Value <= 0)
+                    {
+                        return await CreateBadResponse(
+                            req,
+                            "Price must be greater than zero."
+                        );
+                    }
 
-                // Explicitly set availability
-                existingItem.IsAvailable = request.IsAvailable;
+                    existingItem.Price = request.Price.Value;
+                }
 
+                if (request.IsAvailable.HasValue)
+                {
+                    existingItem.IsAvailable = request.IsAvailable.Value;
+                }
+                // Douglass - St10473980 Fixed End
                 await _storageService.UpdateMenuItemAsync(existingItem);
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
@@ -313,7 +339,8 @@ namespace CoffeeNChill.Functions.Functions
         // 6. DELETE /api/menu/{category}/{sku} - Delete menu item
         [Function("DeleteMenuItem")]
         public async Task<HttpResponseData> DeleteMenuItem(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "menu/{category}/{sku}")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "menu/{category}/{sku}")]
+            HttpRequestData req,
             string category,
             string sku)
         {
@@ -351,7 +378,8 @@ namespace CoffeeNChill.Functions.Functions
         // 7. GET /api/health - Health check endpoint (bonus)
         [Function("HealthCheck")]
         public async Task<HttpResponseData> HealthCheck(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "health")] HttpRequestData req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "health")]
+            HttpRequestData req)
         {
             _logger.LogInformation("Health check requested.");
             var response = req.CreateResponse(HttpStatusCode.OK);
@@ -394,7 +422,8 @@ namespace CoffeeNChill.Functions.Functions
         private async Task<HttpResponseData> CreateErrorResponse(HttpRequestData req)
         {
             var response = req.CreateResponse(HttpStatusCode.InternalServerError);
-            string json = JsonSerializer.Serialize(new { error = "An unexpected error occurred. Please try again." }, _jsonOptions);
+            string json = JsonSerializer.Serialize(new { error = "An unexpected error occurred. Please try again." },
+                _jsonOptions);
             await response.WriteStringAsync(json, Encoding.UTF8);
             response.Headers.Add("Content-Type", "application/json; charset=utf-8");
             return response;
