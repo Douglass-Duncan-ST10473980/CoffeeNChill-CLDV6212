@@ -181,7 +181,7 @@ namespace CoffeeNChill.Functions.Functions
         // wrong function entirely.
         [Function("GetMenuItemsByCategory")]
         public async Task<HttpResponseData> GetMenuItemsByCategory(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "categories/{category}")]
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "menu/category/{category}")]
             HttpRequestData req,
             string category)
         {
